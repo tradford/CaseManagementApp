@@ -29,26 +29,7 @@
                 <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Weather
             </NavLink>
         </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="clients">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Client Management
-            </NavLink>
-        </div>        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="attorneys">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Attorney Management
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="brownsteincases">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Case Management
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="upload">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Upload Document
-            </NavLink>
-        </div>
+ 
 
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="auth">
@@ -59,10 +40,31 @@
         <AuthorizeView>
             <Authorized>
                 <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="clients">
+                        <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Client Management
+                    </NavLink>
+                </div>        <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="attorneys">
+                        <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Attorney Management
+                    </NavLink>
+                </div>
+
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="brownsteincases">
+                        <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Case Management
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="upload">
+                        <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Upload Document
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
                     <NavLink class="nav-link" href="Account/Manage">
                         <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span> @context.User.Identity?.Name
                     </NavLink>
                 </div>
+
                 <div class="nav-item px-3">
                     <form action="Account/Logout" method="post">
                         <AntiforgeryToken />
