@@ -1,0 +1,54 @@
+﻿@page "/casenotes"
+
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using CaseManagementApp.Models
+@using CaseManagementApp.Data
+@implements IAsyncDisposable
+@inject IDbContextFactory<ApplicationDbContext> DbFactory
+
+<PageTitle>Case Notes</PageTitle>
+
+<h1>Case Notes</h1>
+
+<p>
+    <a href="/casenotes/{CaseId:int}">Create New</a> @* Replace 1 with actual CaseId dynamically if needed *@
+</p>
+
+<QuickGrid TGridItem="CaseNote" Class="table" Items="CaseNotes.AsQueryable()" >
+    <PropertyColumn Property="casenote => casenote.BrownsteinCaseId" />
+    <PropertyColumn Property="casenote => casenote.AttorneyId" />
+    <PropertyColumn Property="casenote => casenote.NoteText" />
+    <PropertyColumn Property="casenote => casenote.CreatedAt" />
+
+    <TemplateColumn Context="casenote">
+        <a href="@($"casenotes/edit?id={casenote.Id}")">Edit</a> |
+        <a href="@($"casenotes/details?id={casenote.Id}")">Details</a> |
+        <a href="@($"casenotes/delete?id={casenote.Id}")">Delete</a>
+    </TemplateColumn>
+</QuickGrid>
+
+@code {
+    [Parameter]
+    public int CaseId { get; set; }
+    private ApplicationDbContext? context;
+    private List<CaseNote> CaseNotes = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        context = await DbFactory.CreateDbContextAsync();
+
+        CaseNotes = await context.CaseNotes
+            .Where(n => n.BrownsteinCaseId == CaseId)
+            .OrderByDescending(n => n.CreatedAt)
+            .ToListAsync();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (context is not null)
+        {
+            await context.DisposeAsync();
+        }
+    }
+}

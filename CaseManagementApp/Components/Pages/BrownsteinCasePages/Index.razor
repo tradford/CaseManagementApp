@@ -1,0 +1,57 @@
+﻿@page "/brownsteincases"
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using CaseManagementApp.Models
+@using CaseManagementApp.Data
+
+@inject IDbContextFactory<CaseManagementApp.Data.ApplicationDbContext> DbFactory
+
+<PageTitle>Case Management</PageTitle>
+
+<h1>Case Index</h1>
+
+<p>
+    <a href="brownsteincases/create">Create New Case</a>
+</p>
+
+<QuickGrid TGridItem="BrownsteinCase" Class="table" Items="AllCases.AsQueryable()">
+
+
+
+    <PropertyColumn Property="brownsteincase => brownsteincase.CaseNumber" Title="Case #" />
+    <PropertyColumn Property="brownsteincase => brownsteincase.CaseType" Title="Case Type" />
+    <PropertyColumn Property="brownsteincase => brownsteincase.Status" Title="Status" />
+    <PropertyColumn Property="brownsteincase => brownsteincase.AttorneyId" Title="Attorney Id" />
+
+    <PropertyColumn Property="caseItem => caseItem.Attorney.Name" Title="Attorney Name" />
+    <PropertyColumn Property="brownsteincase => brownsteincase.Client.FullName" Title="Client Name" />
+
+    <TemplateColumn Context="brownsteincase">
+        <a href="@($"brownsteincases/edit?id={brownsteincase.Id}")">Edit</a> |
+        <a href="@($"brownsteincases/details?id={brownsteincase.Id}")">Details</a> |
+        <a class="btn btn-secondary mt-2" href="@($"/casenotes/{brownsteincase.Id}")">
+            Add/View Case Notes
+        </a>|
+        <a class="btn btn-danger" href="@($"brownsteincases/delete?id={brownsteincase.Id}")">
+            Delete
+        </a>
+    </TemplateColumn>
+</QuickGrid>
+
+@code {
+
+    private List<BrownsteinCase> AllCases = new();
+    private ApplicationDbContext context = default!;
+
+
+    protected override void OnInitialized()
+    {
+        context = DbFactory.CreateDbContext();
+
+        AllCases = context.BrownsteinCases
+            .Include(c => c.Client)
+            .Include(c => c.Attorney)
+            .AsNoTracking()
+            .ToList();
+    }
+}

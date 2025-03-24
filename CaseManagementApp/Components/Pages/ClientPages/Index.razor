@@ -1,0 +1,38 @@
+﻿@page "/clients"
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using CaseManagementApp.Models
+@using CaseManagementApp.Data
+@implements IAsyncDisposable
+@inject IDbContextFactory<CaseManagementApp.Data.ApplicationDbContext> DbFactory
+
+<PageTitle>Index</PageTitle>
+
+<h2>CLient Index</h2>
+
+<p>
+    <a href="clients/create">Create New Client</a>
+</p>
+
+<QuickGrid Class="table" Items="context.Clients">
+    <PropertyColumn Property="client => client.FullName" />
+    <PropertyColumn Property="client => client.Email" />
+    <PropertyColumn Property="client => client.PhoneNumber" />
+
+    <TemplateColumn Context="client">
+        <a href="@($"clients/edit?id={client.Id}")">Edit</a> |
+        <a href="@($"clients/details?id={client.Id}")">Details</a> |
+        <a class="btn btn-danger" href="@($"clients/delete?id={client.Id}")">Delete</a>
+    </TemplateColumn>
+</QuickGrid>
+
+@code {
+    private ApplicationDbContext context = default!;
+
+    protected override void OnInitialized()
+    {
+        context = DbFactory.CreateDbContext();
+    }
+
+    public async ValueTask DisposeAsync() => await context.DisposeAsync();
+}

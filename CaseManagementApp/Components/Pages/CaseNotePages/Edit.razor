@@ -1,0 +1,104 @@
+﻿@page "/casenotes/edit"
+@using Microsoft.EntityFrameworkCore
+@using CaseManagementApp.Models
+@inject IDbContextFactory<CaseManagementApp.Data.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Edit</PageTitle>
+
+<h1>Edit</h1>
+
+<h2>CaseNote</h2>
+<hr />
+@if (CaseNote is null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-4">
+            <EditForm method="post" Model="CaseNote" OnValidSubmit="UpdateCaseNote" FormName="edit" Enhance>
+                <DataAnnotationsValidator />
+                <ValidationSummary role="alert" />
+                <input type="hidden" name="CaseNote.Id" value="@CaseNote.Id" />
+                <div class="mb-3">
+                    <label for="brownsteincaseid" class="form-label">BrownsteinCaseId:</label>
+                    <InputNumber id="brownsteincaseid" @bind-Value="CaseNote.BrownsteinCaseId" class="form-control" aria-required="true" />
+                    <ValidationMessage For="() => CaseNote.BrownsteinCaseId" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="attorneyid" class="form-label">AttorneyId:</label>
+                    <InputNumber id="attorneyid" @bind-Value="CaseNote.AttorneyId" class="form-control" aria-required="true" />
+                    <ValidationMessage For="() => CaseNote.AttorneyId" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="notetext" class="form-label">NoteText:</label>
+                    <InputText id="notetext" @bind-Value="CaseNote.NoteText" class="form-control" aria-required="true" />
+                    <ValidationMessage For="() => CaseNote.NoteText" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="createdat" class="form-label">CreatedAt:</label>
+                    <InputDate id="createdat" @bind-Value="CaseNote.CreatedAt" class="form-control" />
+                    <ValidationMessage For="() => CaseNote.CreatedAt" class="text-danger" />
+                </div>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </EditForm>
+        </div>
+    </div>
+}
+
+<div>
+    <a href="/casenotes">Back to List</a>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    private int Id { get; set; }
+
+    [SupplyParameterFromForm]
+    private CaseNote? CaseNote { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        CaseNote ??= await context.CaseNotes.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (CaseNote is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    // To protect from overposting attacks, enable the specific properties you want to bind to.
+    // For more information, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+    private async Task UpdateCaseNote()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Attach(CaseNote!).State = EntityState.Modified;
+
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!CaseNoteExists(CaseNote!.Id))
+            {
+                NavigationManager.NavigateTo("notfound");
+            }
+            else
+            {
+                throw;
+            }
+        }
+
+        NavigationManager.NavigateTo("/casenotes");
+    }
+
+    private bool CaseNoteExists(int id)
+    {
+        using var context = DbFactory.CreateDbContext();
+        return context.CaseNotes.Any(e => e.Id == id);
+    }
+}

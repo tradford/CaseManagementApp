@@ -1,128 +1,59 @@
-﻿@page "/brownsteincases/create"
+﻿@page "/attorneys/create"
 @using Microsoft.EntityFrameworkCore
 @using CaseManagementApp.Models
-@using System.Diagnostics
-@using Microsoft.AspNetCore.Components.Forms
 @inject IDbContextFactory<CaseManagementApp.Data.ApplicationDbContext> DbFactory
 @inject NavigationManager NavigationManager
 
-<PageTitle>Create</PageTitle>
+<PageTitle>Create Attorney</PageTitle>
 
-<h1>Create</h1>
+<h1>Create Attorney</h1>
 
-<h2>BrownsteinCase</h2>
 <hr />
 <div class="row">
     <div class="col-md-4">
-        <EditForm Model="BrownsteinCase" OnValidSubmit="AddBrownsteinCase" FormName="create" Method="post" Enhance>
+        <EditForm method="post" Model="AttorneyForm" OnValidSubmit="AddAttorney" FormName="create" Enhance>
             <DataAnnotationsValidator />
             <ValidationSummary class="text-danger" role="alert" />
-
-            <!-- Case Number -->
             <div class="mb-3">
-                <label for="casenumber" class="form-label">Case Number:</label>
-                <InputText id="casenumber" @bind-Value="BrownsteinCase.CaseNumber" class="form-control" aria-required="true" />
-                <ValidationMessage For="() => BrownsteinCase.CaseNumber" class="text-danger" />
-            </div>
-
-            <!-- Case Type -->
-            <div class="mb-3">
-                <label for="CaseType" class="form-label">Case Type:</label>
-                <select id="CaseType" class="form-select" @bind="BrownsteinCase.CaseType">
-                    @foreach (var type in Enum.GetValues(typeof(CaseType)))
-                    {
-                        <option value="@type">@type</option>
-                    }
-                </select>
-                <ValidationMessage For="() => BrownsteinCase.CaseType" class="text-danger" />
-            </div>
-
-            <!-- Status -->
-            <div class="mb-3">
-                <label for="Status" class="form-label">Status:</label>
-                <select id="Status" class="form-select" @bind="BrownsteinCase.Status">
-                    @foreach (var status in Enum.GetValues(typeof(CaseStatus)))
-                    {
-                        <option value="@status">@status</option>
-                    }
-                </select>
-                <ValidationMessage For="() => BrownsteinCase.Status" class="text-danger" />
-            </div>
-
-
-
-            <!-- Attorney Name -->
-            <div class="mb-3">
-                <label class="form-label">Select Attorney:</label>
-
-                <InputRadioGroup @bind-Value="BrownsteinCase.AttorneyId" class="form-check">
-                    @foreach (var attorney in AllAttorneys)
-                    {
-                        <div class="form-check">
-                            <InputRadio Value="@attorney.Id" class="form-check-input" />
-                            <label class="form-check-label">@attorney.Name</label>
-                        </div>
-                    }
-                </InputRadioGroup>
-
-                <ValidationMessage For="() => BrownsteinCase.ClientId" />
+                <label for="name" class="form-label">Name:</label>
+                <InputText id="name" @bind-Value="AttorneyForm.Name" class="form-control" aria-required="true" />
+                <ValidationMessage For="() => AttorneyForm.Name" class="text-danger" />
             </div>
             <div class="mb-3">
-                <label class="form-label">Select Client:</label>
-
-                <InputRadioGroup @bind-Value="BrownsteinCase.ClientId" class="form-check">
-                    @foreach (var client in AllClients)
-                    {
-                        <div class="form-check">
-                            <InputRadio Value="@client.Id" class="form-check-input" />
-                            <label class="form-check-label">@client.FullName</label>
-                        </div>
-                    }
-                </InputRadioGroup>
-
-                <ValidationMessage For="() => BrownsteinCase.AttorneyId" />
+                <label for="email" class="form-label">Email:</label>
+                <InputText id="email" @bind-Value="AttorneyForm.Email" class="form-control" />
+                <ValidationMessage For="() => AttorneyForm.Email" class="text-danger" />
             </div>
-
+            <div class="mb-3">
+                <label for="phonenumber" class="form-label">Phone Number:</label>
+                <InputText id="phonenumber" @bind-Value="AttorneyForm.PhoneNumber" class="form-control" />
+                <ValidationMessage For="() => AttorneyForm.PhoneNumber" class="text-danger" />
+            </div>
             <button type="submit" class="btn btn-primary">Create</button>
-
         </EditForm>
     </div>
 </div>
 
 <div>
-    <a href="/brownsteincases">Back to List</a>
+    <a href="/attorneys">Back to List</a>
 </div>
 
 @code {
     [SupplyParameterFromForm]
-    private BrownsteinCase BrownsteinCase { get; set; } = new();
+    private Attorney AttorneyForm { get; set; } = new();
 
-    private List<Attorney> AllAttorneys = new();
-
-
-    private List<Client> AllClients = new();
-
-    protected override async Task OnInitializedAsync()
+    private async Task AddAttorney()
     {
-        using var context = DbFactory.CreateDbContext();
-        AllClients = await context.Clients
-            .OrderBy(c => c.FullName)
-            .AsNoTracking()
-            .ToListAsync();
-
-        AllAttorneys = await context.Attorneys
-      .OrderBy(a => a.Name)
-      .AsNoTracking()
-      .ToListAsync();
-    }
-
-    private async Task AddBrownsteinCase()
-    {
-        Debug.WriteLine($"Case for Client ID: {BrownsteinCase.ClientId}");
+        var entity = new Attorney
+            {
+                Name = AttorneyForm.Name,
+                Email = AttorneyForm.Email,
+                PhoneNumber = AttorneyForm.PhoneNumber
+            };
 
         using var context = DbFactory.CreateDbContext();
-        context.BrownsteinCases.Add(BrownsteinCase);
+        context.Attorneys.Add(entity);
         await context.SaveChangesAsync();
-        NavigationManager.NavigateTo("/brownsteincases");
+        NavigationManager.NavigateTo("/attorneys");
     }
 }

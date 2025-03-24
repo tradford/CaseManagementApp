@@ -1,0 +1,40 @@
+﻿@page "/attorneys"
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using CaseManagementApp.Models
+@using CaseManagementApp.Data
+@implements IAsyncDisposable
+@inject IDbContextFactory<CaseManagementApp.Data.ApplicationDbContext> DbFactory
+
+<PageTitle>Index</PageTitle>
+
+<h1>Index</h1>
+
+<p>
+    <a href="attorneys/create">Create New Attorney</a>
+</p>
+
+<div class="table-responsive">
+    <QuickGrid TGridItem="Attorney" Class="table" ItemsProvider="LoadAttorneysAsync">
+        <PropertyColumn Property="attorney => attorney.Name" Title="Name" />
+        <PropertyColumn Property="attorney => attorney.Email" Title="Email" />
+        <PropertyColumn Property="attorney => attorney.PhoneNumber" Title="Phone" />
+
+        <TemplateColumn Context="attorney">
+            <a href="@($"attorneys/edit?id={attorney.Id}")">Edit</a> |
+            <a href="@($"attorneys/details?id={attorney.Id}")">Details</a> |
+            <a class="btn btn-danger" href="@($"attorneys/delete?id={attorney.Id}")">Delete</a>
+        </TemplateColumn>
+    </QuickGrid>
+</div>
+
+@code {
+    private ApplicationDbContext context = default!;
+
+    protected override void OnInitialized()
+    {
+        context = DbFactory.CreateDbContext();
+    }
+
+    public async ValueTask DisposeAsync() => await context.DisposeAsync();
+}

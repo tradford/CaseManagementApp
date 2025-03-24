@@ -1,0 +1,172 @@
+﻿@page "/brownsteincases/edit"
+@using Microsoft.EntityFrameworkCore
+@using CaseManagementApp.Models
+@inject IDbContextFactory<CaseManagementApp.Data.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Edit</PageTitle>
+
+<h1>Edit</h1>
+
+<h2>BrownsteinCase</h2>
+<hr />
+@if (BrownsteinCase is null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-4">
+            <EditForm method="post" Model="BrownsteinCase" OnValidSubmit="UpdateBrownsteinCase" FormName="edit" Enhance>
+                <DataAnnotationsValidator />
+                <ValidationSummary role="alert" />
+                <input type="hidden" name="BrownsteinCase.Id" value="@BrownsteinCase.Id" />
+                <div class="mb-3">
+                    <label for="casenumber" class="form-label">CaseNumber:</label>
+                    <InputText id="casenumber" @bind-Value="BrownsteinCase.CaseNumber" class="form-control" aria-required="true" />
+                    <ValidationMessage For="() => BrownsteinCase.CaseNumber" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="casetype" class="form-label">Case Type:</label>
+                    <select id="casetype" class="form-select" @bind="BrownsteinCase.CaseType">
+                        @foreach (var type in Enum.GetValues(typeof(CaseType)))
+                        {
+                            <option value="@type">@type</option>
+                        }
+                    </select>
+                    <ValidationMessage For="() => BrownsteinCase.CaseType" class="text-danger" />
+                </div>
+
+                <!-- Status (Dropdown for enum) -->
+                <div class="mb-3">
+                    <label for="status" class="form-label">Status:</label>
+                    <select id="status" class="form-select" @bind="BrownsteinCase.Status">
+                        @foreach (var status in Enum.GetValues(typeof(CaseStatus)))
+                        {
+                            <option value="@status">@status</option>
+                        }
+                    </select>
+                    <ValidationMessage For="() => BrownsteinCase.Status" class="text-danger" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Select Client:</label>
+
+                    <InputRadioGroup @bind-Value="BrownsteinCase.ClientId" class="form-check">
+                        @foreach (var client in AllClients)
+                        {
+                            <div class="form-check">
+                                <InputRadio Value="@client.Id" class="form-check-input" />
+                                <label class="form-check-label">@client.FullName</label>
+                            </div>
+                        }
+                    </InputRadioGroup>
+
+                    <ValidationMessage For="() => BrownsteinCase.ClientId" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Attorney:</label>
+
+                    <InputRadioGroup @bind-Value="BrownsteinCase.AttorneyId" class="form-check">
+                        @foreach (var attorney in AllAttorneys)
+                        {
+                            <div class="form-check">
+                                <InputRadio Value="@attorney.Id" class="form-check-input" />
+                                <label class="form-check-label">@attorney.Name</label>
+                            </div>
+                        }
+                    </InputRadioGroup>
+
+                    <ValidationMessage For="() => BrownsteinCase.AttorneyId" />
+                </div>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </EditForm>
+        </div>
+    </div>
+}
+
+<div>
+    <a href="/brownsteincases">Back to List</a>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    private int Id { get; set; }
+
+    [SupplyParameterFromForm]
+    private BrownsteinCase? BrownsteinCase { get; set; }
+
+    private List<Attorney> AllAttorneys = new();
+
+    private List<Client> AllClients = new();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+
+        AllAttorneys = await context.Attorneys
+            .OrderBy(a => a.Name)
+            .AsNoTracking()
+            .ToListAsync();
+
+        BrownsteinCase ??= await context.BrownsteinCases
+            .Include(c => c.Attorney)
+            .Include(c => c.Client) // this ensures ClientId is properly hydrated
+            .FirstOrDefaultAsync(m => m.Id == Id);
+
+
+        AllClients = await context.Clients
+            .OrderBy(c => c.FullName)
+        .AsNoTracking()
+        .ToListAsync();
+
+        if (BrownsteinCase is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    // To protect from overposting attacks, enable the specific properties you want to bind to.
+    // For more information, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+    private async Task UpdateBrownsteinCase()
+    {
+        using var context = DbFactory.CreateDbContext();
+
+        var existingCase = await context.BrownsteinCases.FindAsync(BrownsteinCase!.Id);
+        if (existingCase is not null)
+        {
+            existingCase.CaseNumber = BrownsteinCase.CaseNumber;
+            existingCase.CaseType = BrownsteinCase.CaseType;
+            existingCase.Status = BrownsteinCase.Status;
+            existingCase.AttorneyId = BrownsteinCase.AttorneyId;
+            existingCase.ClientId = BrownsteinCase.ClientId;
+
+            try
+            {
+                await context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!BrownsteinCaseExists(BrownsteinCase.Id))
+                {
+                    NavigationManager.NavigateTo("notfound");
+                }
+                else
+                {
+                    throw;
+                }
+            }
+        }
+
+        NavigationManager.NavigateTo("/brownsteincases");
+    }
+
+    private bool BrownsteinCaseExists(int id)
+    {
+        using var context = DbFactory.CreateDbContext();
+        return context.BrownsteinCases.Any(e => e.Id == id);
+    }
+}

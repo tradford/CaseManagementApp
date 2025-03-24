@@ -1,0 +1,53 @@
+﻿@page "/casenotes/details"
+@using Microsoft.EntityFrameworkCore
+@using CaseManagementApp.Models
+@inject IDbContextFactory<CaseManagementApp.Data.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Details</PageTitle>
+
+<h1>Details</h1>
+
+<div>
+    <h2>CaseNote</h2>
+    <hr />
+    @if (casenote is null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else
+    {
+        <dl class="row">
+            <dt class="col-sm-2">BrownsteinCaseId</dt>
+            <dd class="col-sm-10">@casenote.BrownsteinCaseId</dd>
+            <dt class="col-sm-2">AttorneyId</dt>
+            <dd class="col-sm-10">@casenote.AttorneyId</dd>
+            <dt class="col-sm-2">NoteText</dt>
+            <dd class="col-sm-10">@casenote.NoteText</dd>
+            <dt class="col-sm-2">CreatedAt</dt>
+            <dd class="col-sm-10">@casenote.CreatedAt</dd>
+        </dl>
+        <div>
+            <a href="@($"/casenotes/edit?id={casenote.Id}")">Edit</a> |
+            <a href="@($"/casenotes")">Back to List</a>
+        </div>
+    }
+</div>
+
+@code {
+    private CaseNote? casenote;
+
+    [SupplyParameterFromQuery]
+    private int Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        casenote = await context.CaseNotes.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (casenote is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+}

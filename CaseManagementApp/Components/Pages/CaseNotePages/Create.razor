@@ -1,0 +1,104 @@
+﻿@page "/casenotes/{CaseId:int}"
+@using Microsoft.EntityFrameworkCore
+@using CaseManagementApp.Models
+@inject IDbContextFactory<CaseManagementApp.Data.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Create</PageTitle>
+
+<h1>Create</h1>
+
+<h2>CaseNote</h2>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <EditForm method="post" Model="CaseNote" OnValidSubmit="AddCaseNote" FormName="create" Enhance>
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger" role="alert" />
+            <div class="mb-3">
+                <label for="brownsteincaseid" class="form-label">BrownsteinCaseId:</label>
+                <InputNumber id="brownsteincaseid" @bind-Value="CaseNote.BrownsteinCaseId" class="form-control" aria-required="true" />
+                <ValidationMessage For="() => CaseNote.BrownsteinCaseId" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="attorneyid" class="form-label">AttorneyId:</label>
+                <InputNumber id="attorneyid" @bind-Value="CaseNote.AttorneyId" class="form-control" aria-required="true" />
+                <ValidationMessage For="() => CaseNote.AttorneyId" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="notetext" class="form-label">NoteText:</label>
+                <InputText id="notetext" @bind-Value="CaseNote.NoteText" class="form-control" aria-required="true" />
+                <ValidationMessage For="() => CaseNote.NoteText" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="createdat" class="form-label">CreatedAt:</label>
+                <InputDate id="createdat" @bind-Value="CaseNote.CreatedAt" class="form-control" />
+                <ValidationMessage For="() => CaseNote.CreatedAt" class="text-danger" />
+            </div>
+            <button type="submit" class="btn btn-primary">Create</button>
+        </EditForm>
+
+        <hr />
+        <h3>Previous Notes</h3>
+
+        @if (CaseNotes.Any())
+        {
+            <ul class="list-group">
+                @foreach (var note in CaseNotes)
+                {
+                    <li class="list-group-item">
+                        <strong>@note.CreatedAt.ToShortDateString()</strong><br />
+                        <em>@note.NoteText</em>
+                    </li>
+                }
+            </ul>
+        }
+        else
+        {
+            <p>No notes found for this case.</p>
+        }
+    </div>
+</div>
+
+<div>
+    <a href="/casenotes">Back to List</a>
+</div>
+
+@code {
+    [Parameter]
+    public int CaseId { get; set; }
+
+    [SupplyParameterFromForm]
+    private CaseNote CaseNote { get; set; } = new();
+
+    private List<CaseNote> CaseNotes = new();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+
+        // Get all notes related to the current case
+        CaseNotes = await context.CaseNotes
+            .Where(n => n.BrownsteinCaseId == CaseId)
+            .OrderByDescending(n => n.CreatedAt)
+            .ToListAsync();
+
+        // If you're still creating a note, you can keep this:
+        if (CaseNote.BrownsteinCaseId == 0)
+        {
+            CaseNote.BrownsteinCaseId = CaseId;
+            CaseNote.CreatedAt = DateTime.Now;
+        }
+    }
+
+    private async Task AddCaseNote()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.CaseNotes.Add(CaseNote);
+        await context.SaveChangesAsync();
+
+        // Navigate to case notes list (or redirect to the case detail if preferred)
+        NavigationManager.NavigateTo("/casenotes");
+    }
+}

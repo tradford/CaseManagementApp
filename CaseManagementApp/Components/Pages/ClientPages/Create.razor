@@ -1,0 +1,61 @@
+﻿@page "/clients/create"
+@using Microsoft.EntityFrameworkCore
+@using CaseManagementApp.Models
+@inject IDbContextFactory<CaseManagementApp.Data.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Create</PageTitle>
+
+<h1>Create</h1>
+
+<h2>Client</h2>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <EditForm method="post" Model="ClientForm" OnValidSubmit="AddClient" FormName="create" Enhance>
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger" role="alert" />
+            <div class="mb-3">
+                <label for="fullname" class="form-label">FullName:</label>
+                <InputText id="fullname" @bind-Value="ClientForm.FullName" class="form-control" aria-required="true" />
+                <ValidationMessage For="() => ClientForm.FullName" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="email" class="form-label">Email:</label>
+                <InputText id="email" @bind-Value="ClientForm.Email" class="form-control" />
+                <ValidationMessage For="() => ClientForm.Email" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="phonenumber" class="form-label">PhoneNumber:</label>
+                <InputText id="phonenumber" @bind-Value="ClientForm.PhoneNumber" class="form-control" />
+                <ValidationMessage For="() => ClientForm.PhoneNumber" class="text-danger" />
+            </div>
+            <button type="submit" class="btn btn-primary">Create</button>
+        </EditForm>
+    </div>
+</div>
+
+<div>
+    <a href="/clients">Back to List</a>
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    private Client ClientForm { get; set; } = new();
+
+    // To protect from overposting attacks, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+    private async Task AddClient()
+    {
+        var entity = new Client
+            {
+                FullName = ClientForm.FullName,
+                Email = ClientForm.Email,
+                PhoneNumber = ClientForm.PhoneNumber
+            };
+
+        using var context = DbFactory.CreateDbContext();
+        context.Clients.Add(entity);
+        await context.SaveChangesAsync();
+        NavigationManager.NavigateTo("/clients");
+    }
+}

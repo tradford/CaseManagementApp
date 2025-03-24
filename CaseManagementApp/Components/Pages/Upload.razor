@@ -1,0 +1,71 @@
+﻿@page "/upload"
+
+@inject IConfiguration config
+
+<PageTitle>Upload Demo App</PageTitle>
+
+<h1>Upload Demo</h1>
+
+<InputFile OnChange="@LoadFiles" class="form-control" multiple accept=".png,.jpg,.jpeg" />
+
+@if (errors.Count > 0)
+{
+    <h2>Errors</h2>
+    <ul class="text-danger">
+        @foreach (var error in errors)
+        {
+            <li>@error</li>
+        }
+    </ul>
+}
+
+@code {
+    private long maxFileSize = 1024 * 1024 * 10; // 10MB for testing
+    private int maxAllowedFiles = 3;
+    private List<string> errors = new();
+
+    private bool Uploaded = false; // ✅ Add this to track successful upload
+
+    private async Task LoadFiles(InputFileChangeEventArgs e)
+    {
+        errors.Clear();
+        Uploaded = false; // Reset every time LoadFiles runs
+
+        var storageRoot = config.GetValue<string>("FileStorage");
+        var targetDir = Path.Combine(storageRoot!, "tradford");
+
+        Directory.CreateDirectory(targetDir);
+
+        if (e.FileCount > maxAllowedFiles)
+        {
+            errors.Add($"Error: Attempting to upload {e.FileCount} files, but only {maxAllowedFiles} files are allowed");
+            return;
+        }
+
+        foreach (var file in e.GetMultipleFiles(maxAllowedFiles))
+        {
+            try
+            {
+                string newFileName = Path.ChangeExtension(
+                    Path.GetRandomFileName(),
+                    Path.GetExtension(file.Name));
+
+                string path = Path.Combine(targetDir, newFileName);
+                Console.WriteLine($"Saving to path: {path}");
+
+                await using FileStream fs = new(path, FileMode.Create);
+                await file.OpenReadStream(maxFileSize).CopyToAsync(fs);
+            }
+            catch (Exception ex)
+            {
+                errors.Add($"File: {file.Name} Error: {ex.Message}");
+            }
+        }
+
+        // ✅ Set true if no errors
+        if (errors.Count == 0)
+        {
+            Uploaded = true;
+        }
+    }
+}

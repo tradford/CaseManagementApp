@@ -1,0 +1,99 @@
+﻿@page "/clients/edit"
+@using Microsoft.EntityFrameworkCore
+@using CaseManagementApp.Models
+@inject IDbContextFactory<CaseManagementApp.Data.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Edit</PageTitle>
+
+<h1>Edit</h1>
+
+<h2>Client</h2>
+<hr />
+@if (Client is null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-4">
+            <EditForm method="post" Model="Client" OnValidSubmit="UpdateClient" FormName="edit" Enhance>
+                <DataAnnotationsValidator />
+                <ValidationSummary role="alert" />
+                <input type="hidden" name="Client.Id" value="@Client.Id" />
+                <div class="mb-3">
+                    <label for="fullname" class="form-label">FullName:</label>
+                    <InputText id="fullname" @bind-Value="Client.FullName" class="form-control" aria-required="true" />
+                    <ValidationMessage For="() => Client.FullName" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email:</label>
+                    <InputText id="email" @bind-Value="Client.Email" class="form-control" />
+                    <ValidationMessage For="() => Client.Email" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="phonenumber" class="form-label">PhoneNumber:</label>
+                    <InputText id="phonenumber" @bind-Value="Client.PhoneNumber" class="form-control" />
+                    <ValidationMessage For="() => Client.PhoneNumber" class="text-danger" />
+                </div>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </EditForm>
+        </div>
+    </div>
+}
+
+<div>
+    <a href="/clients">Back to List</a>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    private int Id { get; set; }
+
+    [SupplyParameterFromForm]
+    private Client? Client { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        Client ??= await context.Clients.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (Client is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    // To protect from overposting attacks, enable the specific properties you want to bind to.
+    // For more information, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+    private async Task UpdateClient()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Attach(Client!).State = EntityState.Modified;
+
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!ClientExists(Client!.Id))
+            {
+                NavigationManager.NavigateTo("notfound");
+            }
+            else
+            {
+                throw;
+            }
+        }
+
+        NavigationManager.NavigateTo("/clients");
+    }
+
+    private bool ClientExists(int id)
+    {
+        using var context = DbFactory.CreateDbContext();
+        return context.Clients.Any(e => e.Id == id);
+    }
+}

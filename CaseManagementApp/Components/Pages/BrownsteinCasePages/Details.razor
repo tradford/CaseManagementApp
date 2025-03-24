@@ -1,0 +1,55 @@
+﻿@page "/brownsteincases/details"
+@using Microsoft.EntityFrameworkCore
+@using CaseManagementApp.Models
+@inject IDbContextFactory<CaseManagementApp.Data.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Details</PageTitle>
+
+
+
+<div>
+    <h2>Case Details</h2>
+    <hr />
+    @if (brownsteincase is null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else
+    {
+        <dl class="row">
+            <dt class="col-sm-2">Case Number:</dt>
+            <dd class="col-sm-10">@brownsteincase.CaseNumber</dd>
+            <dt class="col-sm-2">Case Type:</dt>
+            <dd class="col-sm-10">@brownsteincase.CaseType</dd>
+            <dt class="col-sm-2">Status:</dt>
+            <dd class="col-sm-10">@brownsteincase.Status</dd>
+            <dt class="col-sm-2">Attorney Id:</dt>
+            <dd class="col-sm-10">@brownsteincase.AttorneyId</dd>
+            <dt class="col-sm-2">Attorney Name</dt>
+            <dd class="col-sm-10">@brownsteincase.Attorney</dd>
+        </dl>
+        <div>
+            <a href="@($"/brownsteincases/edit?id={brownsteincase.Id}")">Edit</a> |
+            <a href="@($"/brownsteincases")">Back to Case List</a>
+        </div>
+    }
+</div>
+
+@code {
+    private BrownsteinCase? brownsteincase;
+
+    [SupplyParameterFromQuery]
+    private int Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        brownsteincase = await context.BrownsteinCases.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (brownsteincase is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+}
