@@ -1,7 +1,6 @@
 ﻿@page "/clients/details"
-@using Microsoft.EntityFrameworkCore
 @using CaseManagementApp.Models
-@inject IDbContextFactory<CaseManagementApp.Data.ApplicationDbContext> DbFactory
+@inject IClientRepository ClientRepository
 @inject NavigationManager NavigationManager
 
 <PageTitle>Details</PageTitle>
@@ -40,8 +39,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        using var context = DbFactory.CreateDbContext();
-        client = await context.Clients.FirstOrDefaultAsync(m => m.Id == Id);
+        client = await ClientRepository.GetByIdAsync(Id);
 
         if (client is null)
         {

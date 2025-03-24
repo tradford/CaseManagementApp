@@ -1,7 +1,6 @@
 ﻿@page "/casenotes/edit"
-@using Microsoft.EntityFrameworkCore
 @using CaseManagementApp.Models
-@inject IDbContextFactory<CaseManagementApp.Data.ApplicationDbContext> DbFactory
+@inject ICaseNoteRepository CaseNoteRepository
 @inject NavigationManager NavigationManager
 
 <PageTitle>Edit</PageTitle>
@@ -61,8 +60,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        using var context = DbFactory.CreateDbContext();
-        CaseNote ??= await context.CaseNotes.FirstOrDefaultAsync(m => m.Id == Id);
+        CaseNote ??= await CaseNoteRepository.GetByIdAsync(Id);
 
         if (CaseNote is null)
         {
@@ -70,35 +68,17 @@ else
         }
     }
 
-    // To protect from overposting attacks, enable the specific properties you want to bind to.
-    // For more information, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
     private async Task UpdateCaseNote()
     {
-        using var context = DbFactory.CreateDbContext();
-        context.Attach(CaseNote!).State = EntityState.Modified;
+        var exists = await CaseNoteRepository.ExistsAsync(CaseNote!.Id);
 
-        try
+        if (!exists)
         {
-            await context.SaveChangesAsync();
-        }
-        catch (DbUpdateConcurrencyException)
-        {
-            if (!CaseNoteExists(CaseNote!.Id))
-            {
-                NavigationManager.NavigateTo("notfound");
-            }
-            else
-            {
-                throw;
-            }
+            NavigationManager.NavigateTo("notfound");
+            return;
         }
 
+        await CaseNoteRepository.UpdateAsync(CaseNote!);
         NavigationManager.NavigateTo("/casenotes");
-    }
-
-    private bool CaseNoteExists(int id)
-    {
-        using var context = DbFactory.CreateDbContext();
-        return context.CaseNotes.Any(e => e.Id == id);
     }
 }

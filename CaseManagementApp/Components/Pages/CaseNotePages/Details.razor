@@ -1,7 +1,6 @@
 ﻿@page "/casenotes/details"
-@using Microsoft.EntityFrameworkCore
 @using CaseManagementApp.Models
-@inject IDbContextFactory<CaseManagementApp.Data.ApplicationDbContext> DbFactory
+@inject ICaseNoteRepository CaseNoteRepository
 @inject NavigationManager NavigationManager
 
 <PageTitle>Details</PageTitle>
@@ -29,7 +28,7 @@
         </dl>
         <div>
             <a href="@($"/casenotes/edit?id={casenote.Id}")">Edit</a> |
-            <a href="@($"/casenotes")">Back to List</a>
+            <a href="/casenotes">Back to List</a>
         </div>
     }
 </div>
@@ -42,8 +41,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        using var context = DbFactory.CreateDbContext();
-        casenote = await context.CaseNotes.FirstOrDefaultAsync(m => m.Id == Id);
+        casenote = await CaseNoteRepository.GetByIdAsync(Id);
 
         if (casenote is null)
         {

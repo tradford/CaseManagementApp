@@ -1,7 +1,6 @@
 ﻿@page "/clients/delete"
-@using Microsoft.EntityFrameworkCore
 @using CaseManagementApp.Models
-@inject IDbContextFactory<CaseManagementApp.Data.ApplicationDbContext> DbFactory
+@inject IClientRepository ClientRepository
 @inject NavigationManager NavigationManager
 
 <PageTitle>Delete</PageTitle>
@@ -45,8 +44,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        using var context = DbFactory.CreateDbContext();
-        client = await context.Clients.FirstOrDefaultAsync(m => m.Id == Id);
+        client = await ClientRepository.GetByIdAsync(Id);
 
         if (client is null)
         {
@@ -56,9 +54,7 @@
 
     private async Task DeleteClient()
     {
-        using var context = DbFactory.CreateDbContext();
-        context.Clients.Remove(client!);
-        await context.SaveChangesAsync();
+        await ClientRepository.DeleteAsync(Id);
         NavigationManager.NavigateTo("/clients");
     }
 }

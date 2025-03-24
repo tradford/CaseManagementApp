@@ -1,8 +1,9 @@
 ﻿@page "/clients/create"
 @using Microsoft.EntityFrameworkCore
 @using CaseManagementApp.Models
-@inject IDbContextFactory<CaseManagementApp.Data.ApplicationDbContext> DbFactory
+
 @inject NavigationManager NavigationManager
+@inject IClientRepository ClientRepository
 
 <PageTitle>Create</PageTitle>
 
@@ -43,7 +44,7 @@
     [SupplyParameterFromForm]
     private Client ClientForm { get; set; } = new();
 
-    // To protect from overposting attacks, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+    // Use the repository instead of direct DbContext
     private async Task AddClient()
     {
         var entity = new Client
@@ -53,9 +54,7 @@
                 PhoneNumber = ClientForm.PhoneNumber
             };
 
-        using var context = DbFactory.CreateDbContext();
-        context.Clients.Add(entity);
-        await context.SaveChangesAsync();
+        await ClientRepository.AddAsync(entity);
         NavigationManager.NavigateTo("/clients");
     }
 }

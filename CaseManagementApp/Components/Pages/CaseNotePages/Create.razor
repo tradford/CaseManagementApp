@@ -1,7 +1,6 @@
 ﻿@page "/casenotes/{CaseId:int}"
-@using Microsoft.EntityFrameworkCore
 @using CaseManagementApp.Models
-@inject IDbContextFactory<CaseManagementApp.Data.ApplicationDbContext> DbFactory
+@inject ICaseNoteRepository CaseNoteRepository
 @inject NavigationManager NavigationManager
 
 <PageTitle>Create</PageTitle>
@@ -15,6 +14,7 @@
         <EditForm method="post" Model="CaseNote" OnValidSubmit="AddCaseNote" FormName="create" Enhance>
             <DataAnnotationsValidator />
             <ValidationSummary class="text-danger" role="alert" />
+
             <div class="mb-3">
                 <label for="brownsteincaseid" class="form-label">BrownsteinCaseId:</label>
                 <InputNumber id="brownsteincaseid" @bind-Value="CaseNote.BrownsteinCaseId" class="form-control" aria-required="true" />
@@ -35,6 +35,7 @@
                 <InputDate id="createdat" @bind-Value="CaseNote.CreatedAt" class="form-control" />
                 <ValidationMessage For="() => CaseNote.CreatedAt" class="text-danger" />
             </div>
+
             <button type="submit" class="btn btn-primary">Create</button>
         </EditForm>
 
@@ -73,18 +74,10 @@
 
     private List<CaseNote> CaseNotes = new();
 
-
     protected override async Task OnInitializedAsync()
     {
-        using var context = await DbFactory.CreateDbContextAsync();
+        CaseNotes = await CaseNoteRepository.GetByCaseIdAsync(CaseId);
 
-        // Get all notes related to the current case
-        CaseNotes = await context.CaseNotes
-            .Where(n => n.BrownsteinCaseId == CaseId)
-            .OrderByDescending(n => n.CreatedAt)
-            .ToListAsync();
-
-        // If you're still creating a note, you can keep this:
         if (CaseNote.BrownsteinCaseId == 0)
         {
             CaseNote.BrownsteinCaseId = CaseId;
@@ -94,11 +87,7 @@
 
     private async Task AddCaseNote()
     {
-        using var context = DbFactory.CreateDbContext();
-        context.CaseNotes.Add(CaseNote);
-        await context.SaveChangesAsync();
-
-        // Navigate to case notes list (or redirect to the case detail if preferred)
-        NavigationManager.NavigateTo("/casenotes");
+        await CaseNoteRepository.AddAsync(CaseNote);
+        NavigationManager.NavigateTo($"/casenotes/{CaseId}");
     }
 }

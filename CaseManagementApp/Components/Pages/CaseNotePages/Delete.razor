@@ -1,7 +1,6 @@
 ﻿@page "/casenotes/delete"
-@using Microsoft.EntityFrameworkCore
 @using CaseManagementApp.Models
-@inject IDbContextFactory<CaseManagementApp.Data.ApplicationDbContext> DbFactory
+@inject ICaseNoteRepository CaseNoteRepository
 @inject NavigationManager NavigationManager
 
 <PageTitle>Delete</PageTitle>
@@ -21,16 +20,10 @@
         <dl class="row">
             <dt class="col-sm-2">BrownsteinCaseId</dt>
             <dd class="col-sm-10">@casenote.BrownsteinCaseId</dd>
-        </dl>
-        <dl class="row">
             <dt class="col-sm-2">AttorneyId</dt>
             <dd class="col-sm-10">@casenote.AttorneyId</dd>
-        </dl>
-        <dl class="row">
             <dt class="col-sm-2">NoteText</dt>
             <dd class="col-sm-10">@casenote.NoteText</dd>
-        </dl>
-        <dl class="row">
             <dt class="col-sm-2">CreatedAt</dt>
             <dd class="col-sm-10">@casenote.CreatedAt</dd>
         </dl>
@@ -49,8 +42,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        using var context = DbFactory.CreateDbContext();
-        casenote = await context.CaseNotes.FirstOrDefaultAsync(m => m.Id == Id);
+        casenote = await CaseNoteRepository.GetByIdAsync(Id);
 
         if (casenote is null)
         {
@@ -60,9 +52,7 @@
 
     private async Task DeleteCaseNote()
     {
-        using var context = DbFactory.CreateDbContext();
-        context.CaseNotes.Remove(casenote!);
-        await context.SaveChangesAsync();
+        await CaseNoteRepository.DeleteAsync(Id);
         NavigationManager.NavigateTo("/casenotes");
     }
 }

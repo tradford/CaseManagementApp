@@ -1,7 +1,6 @@
 ﻿@page "/clients/edit"
-@using Microsoft.EntityFrameworkCore
 @using CaseManagementApp.Models
-@inject IDbContextFactory<CaseManagementApp.Data.ApplicationDbContext> DbFactory
+@inject IClientRepository ClientRepository
 @inject NavigationManager NavigationManager
 
 <PageTitle>Edit</PageTitle>
@@ -56,8 +55,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        using var context = DbFactory.CreateDbContext();
-        Client ??= await context.Clients.FirstOrDefaultAsync(m => m.Id == Id);
+        Client ??= await ClientRepository.GetByIdAsync(Id);
 
         if (Client is null)
         {
@@ -65,35 +63,17 @@ else
         }
     }
 
-    // To protect from overposting attacks, enable the specific properties you want to bind to.
-    // For more information, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
     private async Task UpdateClient()
     {
-        using var context = DbFactory.CreateDbContext();
-        context.Attach(Client!).State = EntityState.Modified;
+        var exists = await ClientRepository.GetByIdAsync(Client!.Id);
 
-        try
+        if (exists is null)
         {
-            await context.SaveChangesAsync();
-        }
-        catch (DbUpdateConcurrencyException)
-        {
-            if (!ClientExists(Client!.Id))
-            {
-                NavigationManager.NavigateTo("notfound");
-            }
-            else
-            {
-                throw;
-            }
+            NavigationManager.NavigateTo("notfound");
+            return;
         }
 
+        await ClientRepository.UpdateAsync(Client!);
         NavigationManager.NavigateTo("/clients");
-    }
-
-    private bool ClientExists(int id)
-    {
-        using var context = DbFactory.CreateDbContext();
-        return context.Clients.Any(e => e.Id == id);
     }
 }

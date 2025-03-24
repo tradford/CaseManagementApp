@@ -15,10 +15,10 @@
 </p>
 
 <div class="table-responsive">
-    <QuickGrid TGridItem="Attorney" Class="table" ItemsProvider="LoadAttorneysAsync">
-        <PropertyColumn Property="attorney => attorney.Name" Title="Name" />
-        <PropertyColumn Property="attorney => attorney.Email" Title="Email" />
-        <PropertyColumn Property="attorney => attorney.PhoneNumber" Title="Phone" />
+    <QuickGrid TGridItem="Attorney" Class="table" Items="context.Attorneys">
+        <PropertyColumn Property="attorney => attorney.Name" />
+        <PropertyColumn Property="attorney => attorney.Email" />
+        <PropertyColumn Property="attorney => attorney.PhoneNumber" />
 
         <TemplateColumn Context="attorney">
             <a href="@($"attorneys/edit?id={attorney.Id}")">Edit</a> |
