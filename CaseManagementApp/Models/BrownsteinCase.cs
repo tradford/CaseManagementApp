@@ -27,15 +27,18 @@ namespace CaseManagementApp.Models
         [Required]
         public string CaseNumber { get; set; }
 
+        [EnumDataType(typeof(CaseType))]
         [Required]
         public CaseType CaseType { get; set; }
 
+        [EnumDataType(typeof(CaseStatus))]
         [Required]
         public CaseStatus Status { get; set; }
 
         [Required]
         public int ClientId { get; set; }  // Foreign key
 
+        [ForeignKey("ClientId")]
         public Client Client { get; set; }
         [Required]
         public int AttorneyId { get; set; } //Foreignj key
@@ -44,6 +47,8 @@ namespace CaseManagementApp.Models
         public Attorney Attorney { get; set; }
 
         public ICollection<CaseNote> CaseNotes { get; set; }
+
+
 
     }
 }

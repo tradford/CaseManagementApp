@@ -1,12 +1,9 @@
 ﻿@page "/brownsteincases/create"
-@using Microsoft.EntityFrameworkCore
 @using CaseManagementApp.Models
-@using System.Diagnostics
-@using Microsoft.AspNetCore.Identity
-@using CaseManagementApp.Data
-@inject IDbContextFactory<CaseManagementApp.Data.ApplicationDbContext> DbFactory
+@inject ICaseRepository CaseRepository
+@inject IAttorneyRepository AttorneyRepository
+@inject IClientRepository ClientRepository
 @inject NavigationManager NavigationManager
-
 
 <PageTitle>Create</PageTitle>
 
@@ -51,12 +48,9 @@
                 <ValidationMessage For="() => BrownsteinCase.Status" class="text-danger" />
             </div>
 
-
-
-            <!-- Attorney Name -->
+            <!-- Attorney -->
             <div class="mb-3">
                 <label class="form-label">Select Attorney:</label>
-
                 <InputRadioGroup @bind-Value="BrownsteinCase.AttorneyId" class="form-check">
                     @foreach (var attorney in AllAttorneys)
                     {
@@ -66,12 +60,12 @@
                         </div>
                     }
                 </InputRadioGroup>
-
-                <ValidationMessage For="() => BrownsteinCase.ClientId" />
+                <ValidationMessage For="() => BrownsteinCase.AttorneyId" class="text-danger" />
             </div>
+
+            <!-- Client -->
             <div class="mb-3">
                 <label class="form-label">Select Client:</label>
-
                 <InputRadioGroup @bind-Value="BrownsteinCase.ClientId" class="form-check">
                     @foreach (var client in AllClients)
                     {
@@ -81,12 +75,10 @@
                         </div>
                     }
                 </InputRadioGroup>
-
-                <ValidationMessage For="() => BrownsteinCase.AttorneyId" />
+                <ValidationMessage For="() => BrownsteinCase.ClientId" class="text-danger" />
             </div>
 
             <button type="submit" class="btn btn-primary">Create</button>
-
         </EditForm>
     </div>
 </div>
@@ -100,31 +92,17 @@
     private BrownsteinCase BrownsteinCase { get; set; } = new();
 
     private List<Attorney> AllAttorneys = new();
-
-
     private List<Client> AllClients = new();
 
     protected override async Task OnInitializedAsync()
     {
-        using var context = DbFactory.CreateDbContext();
-        AllClients = await context.Clients
-            .OrderBy(c => c.FullName)
-            .AsNoTracking()
-            .ToListAsync();
-
-        AllAttorneys = await context.Attorneys
-      .OrderBy(a => a.Name)
-      .AsNoTracking()
-      .ToListAsync();
+        AllClients = await ClientRepository.GetAllAsync();
+        AllAttorneys = await AttorneyRepository.GetAllAsync();
     }
 
     private async Task AddBrownsteinCase()
     {
-        Debug.WriteLine($"Case for Client ID: {BrownsteinCase.ClientId}");
-
-        using var context = DbFactory.CreateDbContext();
-        context.BrownsteinCases.Add(BrownsteinCase);
-        await context.SaveChangesAsync();
+        await CaseRepository.AddAsync(BrownsteinCase);
         NavigationManager.NavigateTo("/brownsteincases");
     }
 }

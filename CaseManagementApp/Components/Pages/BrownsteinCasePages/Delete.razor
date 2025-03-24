@@ -1,7 +1,6 @@
 ﻿@page "/brownsteincases/delete"
-@using Microsoft.EntityFrameworkCore
 @using CaseManagementApp.Models
-@inject IDbContextFactory<CaseManagementApp.Data.ApplicationDbContext> DbFactory
+@inject ICaseRepository CaseRepository
 @inject NavigationManager NavigationManager
 
 <PageTitle>Delete</PageTitle>
@@ -21,22 +20,18 @@
         <dl class="row">
             <dt class="col-sm-2">CaseNumber</dt>
             <dd class="col-sm-10">@brownsteincase.CaseNumber</dd>
-        </dl>
-        <dl class="row">
+
             <dt class="col-sm-2">CaseType</dt>
             <dd class="col-sm-10">@brownsteincase.CaseType</dd>
-        </dl>
-        <dl class="row">
+
             <dt class="col-sm-2">Status</dt>
             <dd class="col-sm-10">@brownsteincase.Status</dd>
-        </dl>
-        <dl class="row">
+
             <dt class="col-sm-2">AttorneyId</dt>
             <dd class="col-sm-10">@brownsteincase.AttorneyId</dd>
-        </dl>
-        <dl class="row">
+
             <dt class="col-sm-2">Attorney</dt>
-            <dd class="col-sm-10">@brownsteincase.Attorney</dd>
+            <dd class="col-sm-10">@brownsteincase.Attorney?.Name</dd>
         </dl>
         <EditForm method="post" Model="brownsteincase" OnValidSubmit="DeleteBrownsteinCase" FormName="delete" Enhance>
             <button type="submit" class="btn btn-danger" disabled="@(brownsteincase is null)">Delete</button> |
@@ -53,8 +48,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        using var context = DbFactory.CreateDbContext();
-        brownsteincase = await context.BrownsteinCases.FirstOrDefaultAsync(m => m.Id == Id);
+        brownsteincase = await CaseRepository.GetByIdAsync(Id);
 
         if (brownsteincase is null)
         {
@@ -64,9 +58,7 @@
 
     private async Task DeleteBrownsteinCase()
     {
-        using var context = DbFactory.CreateDbContext();
-        context.BrownsteinCases.Remove(brownsteincase!);
-        await context.SaveChangesAsync();
+        await CaseRepository.DeleteAsync(Id);
         NavigationManager.NavigateTo("/brownsteincases");
     }
 }

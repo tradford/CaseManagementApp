@@ -1,12 +1,9 @@
 ﻿@page "/brownsteincases/details"
-@using Microsoft.EntityFrameworkCore
 @using CaseManagementApp.Models
-@inject IDbContextFactory<CaseManagementApp.Data.ApplicationDbContext> DbFactory
+@inject ICaseRepository CaseRepository
 @inject NavigationManager NavigationManager
 
 <PageTitle>Details</PageTitle>
-
-
 
 <div>
     <h2>Case Details</h2>
@@ -20,18 +17,22 @@
         <dl class="row">
             <dt class="col-sm-2">Case Number:</dt>
             <dd class="col-sm-10">@brownsteincase.CaseNumber</dd>
+
             <dt class="col-sm-2">Case Type:</dt>
             <dd class="col-sm-10">@brownsteincase.CaseType</dd>
+
             <dt class="col-sm-2">Status:</dt>
             <dd class="col-sm-10">@brownsteincase.Status</dd>
+
             <dt class="col-sm-2">Attorney Id:</dt>
             <dd class="col-sm-10">@brownsteincase.AttorneyId</dd>
-            <dt class="col-sm-2">Attorney Name</dt>
-            <dd class="col-sm-10">@brownsteincase.Attorney</dd>
+
+            <dt class="col-sm-2">Attorney Name:</dt>
+            <dd class="col-sm-10">@brownsteincase.Attorney?.Name</dd>
         </dl>
         <div>
             <a href="@($"/brownsteincases/edit?id={brownsteincase.Id}")">Edit</a> |
-            <a href="@($"/brownsteincases")">Back to Case List</a>
+            <a href="/brownsteincases">Back to Case List</a>
         </div>
     }
 </div>
@@ -44,8 +45,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        using var context = DbFactory.CreateDbContext();
-        brownsteincase = await context.BrownsteinCases.FirstOrDefaultAsync(m => m.Id == Id);
+        brownsteincase = await CaseRepository.GetByIdAsync(Id);
 
         if (brownsteincase is null)
         {
