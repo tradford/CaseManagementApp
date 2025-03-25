@@ -3,8 +3,7 @@
 @using Microsoft.AspNetCore.Components.QuickGrid
 @using CaseManagementApp.Models
 @using CaseManagementApp.Data
-@implements IAsyncDisposable
-@inject IDbContextFactory<CaseManagementApp.Data.ApplicationDbContext> DbFactory
+@inject IAttorneyRepository AttorneyRepository
 
 <PageTitle>Index</PageTitle>
 
@@ -15,7 +14,7 @@
 </p>
 
 <div class="table-responsive">
-    <QuickGrid TGridItem="Attorney" Class="table" Items="context.Attorneys">
+    <QuickGrid TGridItem="Attorney" Class="table" Items="AllAttorneys.AsQueryable()">
         <PropertyColumn Property="attorney => attorney.Name" />
         <PropertyColumn Property="attorney => attorney.Email" />
         <PropertyColumn Property="attorney => attorney.PhoneNumber" />
@@ -29,12 +28,10 @@
 </div>
 
 @code {
-    private ApplicationDbContext context = default!;
+private List<Attorney> AllAttorneys = new();
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        context = DbFactory.CreateDbContext();
+        AllAttorneys = await AttorneyRepository.GetAllAsync();
     }
-
-    public async ValueTask DisposeAsync() => await context.DisposeAsync();
 }

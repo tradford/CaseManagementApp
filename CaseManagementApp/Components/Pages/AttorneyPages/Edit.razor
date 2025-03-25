@@ -1,7 +1,7 @@
 ﻿@page "/attorneys/edit"
 @using Microsoft.EntityFrameworkCore
 @using CaseManagementApp.Models
-@inject IDbContextFactory<CaseManagementApp.Data.ApplicationDbContext> DbFactory
+@inject IAttorneyRepository AttorneyRepository
 @inject NavigationManager NavigationManager
 
 <PageTitle>Edit</PageTitle>
@@ -56,8 +56,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        using var context = DbFactory.CreateDbContext();
-        Attorney ??= await context.Attorneys.FirstOrDefaultAsync(m => m.Id == Id);
+        Attorney ??= await AttorneyRepository.GetByIdAsync(Id);
 
         if (Attorney is null)
         {
@@ -65,35 +64,12 @@ else
         }
     }
 
-    // To protect from overposting attacks, enable the specific properties you want to bind to.
-    // For more information, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
     private async Task UpdateAttorney()
     {
-        using var context = DbFactory.CreateDbContext();
-        context.Attach(Attorney!).State = EntityState.Modified;
-
-        try
+        if (Attorney is not null)
         {
-            await context.SaveChangesAsync();
+            await AttorneyRepository.UpdateAsync(Attorney);
+            NavigationManager.NavigateTo("/attorneys");
         }
-        catch (DbUpdateConcurrencyException)
-        {
-            if (!AttorneyExists(Attorney!.Id))
-            {
-                NavigationManager.NavigateTo("notfound");
-            }
-            else
-            {
-                throw;
-            }
-        }
-
-        NavigationManager.NavigateTo("/attorneys");
-    }
-
-    private bool AttorneyExists(int id)
-    {
-        using var context = DbFactory.CreateDbContext();
-        return context.Attorneys.Any(e => e.Id == id);
     }
 }

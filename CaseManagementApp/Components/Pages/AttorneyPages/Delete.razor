@@ -1,7 +1,7 @@
 ﻿@page "/attorneys/delete"
 @using Microsoft.EntityFrameworkCore
 @using CaseManagementApp.Models
-@inject IDbContextFactory<CaseManagementApp.Data.ApplicationDbContext> DbFactory
+@inject IAttorneyRepository AttorneyRepository
 @inject NavigationManager NavigationManager
 
 <PageTitle>Delete</PageTitle>
@@ -45,8 +45,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        using var context = DbFactory.CreateDbContext();
-        attorney = await context.Attorneys.FirstOrDefaultAsync(m => m.Id == Id);
+        attorney = await AttorneyRepository.GetByIdAsync(Id);
 
         if (attorney is null)
         {
@@ -56,9 +55,7 @@
 
     private async Task DeleteAttorney()
     {
-        using var context = DbFactory.CreateDbContext();
-        context.Attorneys.Remove(attorney!);
-        await context.SaveChangesAsync();
+        await AttorneyRepository.DeleteAsync(Id);
         NavigationManager.NavigateTo("/attorneys");
     }
 }

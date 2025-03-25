@@ -1,7 +1,7 @@
 ﻿@page "/attorneys/details"
 @using Microsoft.EntityFrameworkCore
 @using CaseManagementApp.Models
-@inject IDbContextFactory<CaseManagementApp.Data.ApplicationDbContext> DbFactory
+@inject IAttorneyRepository AttorneyRepository
 @inject NavigationManager NavigationManager
 
 <PageTitle>Details</PageTitle>
@@ -40,8 +40,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        using var context = DbFactory.CreateDbContext();
-        attorney = await context.Attorneys.FirstOrDefaultAsync(m => m.Id == Id);
+        attorney = await AttorneyRepository.GetByIdAsync(Id);
 
         if (attorney is null)
         {

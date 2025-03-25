@@ -1,7 +1,7 @@
 ﻿@page "/attorneys/create"
 @using Microsoft.EntityFrameworkCore
 @using CaseManagementApp.Models
-@inject IDbContextFactory<CaseManagementApp.Data.ApplicationDbContext> DbFactory
+@inject IAttorneyRepository AttorneyRepository
 @inject NavigationManager NavigationManager
 
 <PageTitle>Create Attorney</PageTitle>
@@ -51,9 +51,7 @@
                 PhoneNumber = AttorneyForm.PhoneNumber
             };
 
-        using var context = DbFactory.CreateDbContext();
-        context.Attorneys.Add(entity);
-        await context.SaveChangesAsync();
+        await AttorneyRepository.AddAsync(entity);
         NavigationManager.NavigateTo("/attorneys");
     }
 }
