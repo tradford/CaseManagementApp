@@ -1,8 +1,13 @@
 ﻿@page "/casenotes/{CaseId:int}"
 @using CaseManagementApp.Models
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Identity
+@using CaseManagementApp.Data
 @inject ICaseNoteRepository CaseNoteRepository
 @inject NavigationManager NavigationManager
+@inject UserManager<ApplicationUser> UserManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
 
 @attribute [Authorize(Roles = "Attorney, Paralegal, Admin")]
 
@@ -52,7 +57,8 @@
                 {
                     <li class="list-group-item">
                         <strong>@note.CreatedAt.ToShortDateString()</strong><br />
-                        <em>@note.NoteText</em>
+                        <em>@note.NoteText</em><br />
+                        <small class="text-muted">— @note.CreatedByUser?.Email</small>
                     </li>
                 }
             </ul>
@@ -90,6 +96,13 @@
 
     private async Task AddCaseNote()
     {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var userId = UserManager.GetUserId(user);
+
+        CaseNote.CreatedByUserId = userId;
+        CaseNote.CreatedAt = DateTime.Now;
+
         await CaseNoteRepository.AddAsync(CaseNote);
         NavigationManager.NavigateTo($"/casenotes/{CaseId}");
     }

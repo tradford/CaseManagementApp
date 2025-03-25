@@ -15,6 +15,7 @@ public class CaseNoteRepository : ICaseNoteRepository
     {
         using var context = await _contextFactory.CreateDbContextAsync();
         return await context.CaseNotes
+            .Include(n => n.CreatedByUser) 
             .Where(n => n.BrownsteinCaseId == caseId)
             .OrderByDescending(n => n.CreatedAt)
             .ToListAsync();

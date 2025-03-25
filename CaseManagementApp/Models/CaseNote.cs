@@ -1,11 +1,15 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using CaseManagementApp.Data;
 
 namespace CaseManagementApp.Models
 {
     public class CaseNote
     {
         public int Id { get; set; }
+
+        public string? CreatedByUserId { get; set; }
+        public ApplicationUser? CreatedByUser { get; set; }  // Navigation property
 
         [Required]
         public int BrownsteinCaseId { get; set; }
