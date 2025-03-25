@@ -3,7 +3,10 @@
 @using Microsoft.AspNetCore.Components.QuickGrid
 @using CaseManagementApp.Models
 @using CaseManagementApp.Data
+@using Microsoft.AspNetCore.Authorization
 @inject IAttorneyRepository AttorneyRepository
+
+@attribute [Authorize(Roles = "Attorney, Paralegal, Admin")]
 
 <PageTitle>Index</PageTitle>
 

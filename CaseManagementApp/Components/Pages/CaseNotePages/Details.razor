@@ -1,7 +1,10 @@
 ﻿@page "/casenotes/details"
 @using CaseManagementApp.Models
+@using Microsoft.AspNetCore.Authorization
 @inject ICaseNoteRepository CaseNoteRepository
 @inject NavigationManager NavigationManager
+
+@attribute [Authorize(Roles = "Attorney, Paralegal, Admin")]
 
 <PageTitle>Details</PageTitle>
 

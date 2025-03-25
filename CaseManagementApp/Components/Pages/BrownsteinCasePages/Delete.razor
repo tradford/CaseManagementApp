@@ -1,7 +1,10 @@
 ﻿@page "/brownsteincases/delete"
 @using CaseManagementApp.Models
+@using Microsoft.AspNetCore.Authorization
 @inject ICaseRepository CaseRepository
 @inject NavigationManager NavigationManager
+
+@attribute [Authorize(Roles = "Attorney, Admin")]
 
 <PageTitle>Delete</PageTitle>
 

@@ -1,7 +1,10 @@
 ﻿@page "/brownsteincases"
 @using CaseManagementApp.Models
 @using Microsoft.AspNetCore.Components.QuickGrid
+@using Microsoft.AspNetCore.Authorization
 @inject ICaseRepository CaseRepository
+
+@attribute [Authorize(Roles = "Attorney, Paralegal, Admin")]
 
 <PageTitle>Case Management</PageTitle>
 
@@ -11,38 +14,77 @@
     <a href="brownsteincases/create">Create New Case</a>
 </p>
 
-@if (AllCases is null)
+<!-- 🔍 Search Bar -->
+<input type="text" class="form-control mb-3" placeholder="Search cases..."
+       @bind="SearchTerm" @bind:event="oninput" />
+
+@if (FilteredCases is null)
 {
     <p><em>Loading cases...</em></p>
 }
 else
 {
-    <QuickGrid TGridItem="BrownsteinCase" Class="table" Items="AllCases.AsQueryable()">
-        <PropertyColumn Property="brownsteincase => brownsteincase.CaseNumber" Title="Case #" />
-        <PropertyColumn Property="brownsteincase => brownsteincase.CaseType" Title="Case Type" />
-        <PropertyColumn Property="brownsteincase => brownsteincase.Status" Title="Status" />
-        <PropertyColumn Property="brownsteincase => brownsteincase.AttorneyId" Title="Attorney Id" />
-        <PropertyColumn Property="brownsteincase => brownsteincase.Attorney.Name" Title="Attorney Name" />
-        <PropertyColumn Property="brownsteincase => brownsteincase.Client.FullName" Title="Client Name" />
+    <QuickGrid TGridItem="BrownsteinCase" Class="table" Items="FilteredCases.AsQueryable()">
+        <PropertyColumn Property="c => c.CaseNumber" Title="Case #" />
+        <PropertyColumn Property="c => c.CaseType" Title="Case Type" />
+        <PropertyColumn Property="c => c.Status" Title="Status" />
+        <PropertyColumn Property="c => c.AttorneyId" Title="Attorney Id" />
+        <PropertyColumn Property="c => c.Attorney.Name" Title="Attorney Name" />
+        <PropertyColumn Property="c => c.Client.FullName" Title="Client Name" />
 
-        <TemplateColumn Context="brownsteincase">
-            <a href="@($"brownsteincases/edit?id={brownsteincase.Id}")">Edit</a> |
-            <a href="@($"brownsteincases/details?id={brownsteincase.Id}")">Details</a> |
-            <a class="btn btn-secondary mt-2" href="@($"/casenotes/{brownsteincase.Id}")">
-                Add/View Case Notes
-            </a> |
-            <a class="btn btn-danger" href="@($"brownsteincases/delete?id={brownsteincase.Id}")">
-                Delete
-            </a>
+        <TemplateColumn Context="c">
+            <a href="@($"brownsteincases/edit?id={c.Id}")">Edit</a> |
+            <a href="@($"brownsteincases/details?id={c.Id}")">Details</a> |
+            <a class="btn btn-secondary mt-2" href="@($"/casenotes/{c.Id}")">Add/View Notes</a> |
+            <a class="btn btn-danger" href="@($"brownsteincases/delete?id={c.Id}")">Delete</a>
         </TemplateColumn>
     </QuickGrid>
 }
 
 @code {
     private List<BrownsteinCase>? AllCases;
+    private List<BrownsteinCase>? FilteredCases;
+
+    private string _searchTerm = string.Empty;
+
+    private string SearchTerm
+    {
+        get => _searchTerm;
+        set
+        {
+            if (_searchTerm != value)
+            {
+                _searchTerm = value;
+                FilterCases();
+            }
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
         AllCases = await CaseRepository.GetAllAsync();
+        FilteredCases = AllCases;
+    }
+
+    private void FilterCases()
+    {
+        var term = _searchTerm?.Trim().ToLower();
+
+        if (string.IsNullOrWhiteSpace(term))
+        {
+            FilteredCases = AllCases;
+        }
+        else
+        {
+            FilteredCases = AllCases?
+                .Where(c =>
+                    (c.CaseNumber?.ToLower().Contains(term) ?? false) ||
+                    (c.Client?.FullName?.ToLower().Contains(term) ?? false) ||
+                    (c.Attorney?.Name?.ToLower().Contains(term) ?? false)
+                )
+                .ToList();
+        }
+
+        StateHasChanged();
     }
 }

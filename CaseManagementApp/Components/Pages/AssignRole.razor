@@ -1,0 +1,117 @@
+﻿@page "/admin/assign-role"
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@using CaseManagementApp.Data
+@using Microsoft.AspNetCore.Authorization
+@inject UserManager<ApplicationUser> UserManager
+@inject RoleManager<IdentityRole> RoleManager
+@inject NavigationManager NavigationManager
+
+@attribute [Authorize(Roles = "Attorney, Paralegal, Admin")]
+
+<h3>Assign Role to User</h3>
+
+@if (Users == null || Roles == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <EditForm Model="UserRoleInput" OnValidSubmit="AssignUserRole" method="post" FormName="assign-role" Enhance>
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <!-- User Selection -->
+        <div class="mb-3">
+            <label class="form-label">Select User:</label>
+            <InputRadioGroup @bind-Value="SelectedUserId" class="form-check">
+                @foreach (var user in Users)
+                {
+                    <div class="form-check">
+                        <InputRadio Value="@user.Id" class="form-check-input" />
+                        <label class="form-check-label">@user.Email</label>
+                    </div>
+                }
+            </InputRadioGroup>
+        </div>
+
+        <!-- Role Selection -->
+        <div class="mb-3">
+            <label class="form-label">Select Role:</label>
+            <InputRadioGroup @bind-Value="SelectedRoleName" class="form-check">
+                @foreach (var role in Roles)
+                {
+                    <div class="form-check">
+                        <InputRadio Value="@role.Name" class="form-check-input" />
+                        <label class="form-check-label">@role.Name</label>
+                    </div>
+                }
+            </InputRadioGroup>
+        </div>
+
+        <button class="btn btn-primary" type="submit">Assign Role</button>
+    </EditForm>
+
+
+    @if (!string.IsNullOrWhiteSpace(StatusMessage))
+    {
+        <div class="alert alert-info mt-3">@StatusMessage</div>
+    }
+}
+
+@code {
+    private AssignRoleInputModel UserRoleInput = new();
+    private List<ApplicationUser>? Users;
+    private List<IdentityRole>? Roles;
+  
+
+    private string SelectedUserId = string.Empty;
+    private string SelectedRoleName = string.Empty;
+    private string StatusMessage = string.Empty;
+
+    private class AssignRoleInputModel
+    {
+        public string UserId { get; set; }
+        public string RoleId { get; set; }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Users = await UserManager.Users.ToListAsync();
+        Roles = await RoleManager.Roles.ToListAsync();
+    }
+
+    private async Task AssignUserRole()
+    {
+        if (string.IsNullOrWhiteSpace(SelectedUserId) || string.IsNullOrWhiteSpace(SelectedRoleName))
+        {
+            StatusMessage = "Please select both a user and a role.";
+            return;
+        }
+
+        var user = await UserManager.FindByIdAsync(SelectedUserId);
+        if (user == null)
+        {
+            StatusMessage = "User not found.";
+            return;
+        }
+
+        if (!await RoleManager.RoleExistsAsync(SelectedRoleName))
+        {
+            StatusMessage = $"Role '{SelectedRoleName}' does not exist.";
+            return;
+        }
+
+        var currentRoles = await UserManager.GetRolesAsync(user);
+        if (currentRoles.Contains(SelectedRoleName))
+        {
+            StatusMessage = $"User already has the role '{SelectedRoleName}'.";
+            return;
+        }
+
+        var result = await UserManager.AddToRoleAsync(user, SelectedRoleName);
+        StatusMessage = result.Succeeded
+            ? $"Successfully assigned role '{SelectedRoleName}' to user '{user.Email}'."
+            : "Failed to assign role.";
+    }
+}

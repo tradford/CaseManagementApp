@@ -1,8 +1,11 @@
 ﻿@page "/clients"
 @using CaseManagementApp.Models
 @using Microsoft.AspNetCore.Components.QuickGrid
+@using Microsoft.AspNetCore.Authorization
 @inject IClientRepository ClientRepository
 @inject NavigationManager NavigationManager
+
+@attribute [Authorize(Roles = "Attorney, Paralegal, Admin")]
 
 <PageTitle>Client Index</PageTitle>
 
@@ -12,13 +15,16 @@
     <a href="clients/create">Create New Client</a>
 </p>
 
-@if (clients is null)
+<!-- 🔍 Search bar -->
+<input class="form-control mb-3" placeholder="Search clients..." @bind="SearchTerm" @bind:event="oninput" />
+
+@if (FilteredClients is null)
 {
     <p><em>Loading...</em></p>
 }
 else
 {
-    <QuickGrid TGridItem="Client" Class="table" Items="clients.AsQueryable()">
+    <QuickGrid TGridItem="Client" Class="table" Items="FilteredClients.AsQueryable()">
         <PropertyColumn Property="client => client.FullName" Title="Full Name" />
         <PropertyColumn Property="client => client.Email" Title="Email" />
         <PropertyColumn Property="client => client.PhoneNumber" Title="Phone Number" />
@@ -33,9 +39,44 @@ else
 
 @code {
     private List<Client>? clients;
+    private List<Client>? FilteredClients;
+
+    private string _searchTerm = string.Empty;
+
+    private string SearchTerm
+    {
+        get => _searchTerm;
+        set
+        {
+            if (_searchTerm != value)
+            {
+                _searchTerm = value;
+                FilterClients();
+            }
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
         clients = await ClientRepository.GetAllAsync();
+        FilteredClients = clients;
+    }
+
+    private void FilterClients()
+    {
+        if (string.IsNullOrWhiteSpace(SearchTerm))
+        {
+            FilteredClients = clients;
+        }
+        else
+        {
+            FilteredClients = clients?
+                .Where(c =>
+                    (!string.IsNullOrEmpty(c.FullName) && c.FullName.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase)) ||
+                    (!string.IsNullOrEmpty(c.Email) && c.Email.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase)) ||
+                    (!string.IsNullOrEmpty(c.PhoneNumber) && c.PhoneNumber.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase))
+                )
+                .ToList();
+        }
     }
 }

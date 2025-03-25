@@ -1,9 +1,12 @@
 ﻿@page "/brownsteincases/edit"
 @using CaseManagementApp.Models
+@using Microsoft.AspNetCore.Authorization
 @inject ICaseRepository CaseRepository
 @inject IAttorneyRepository AttorneyRepository
 @inject IClientRepository ClientRepository
 @inject NavigationManager NavigationManager
+
+@attribute [Authorize(Roles = "Attorney, Admin")]
 
 <PageTitle>Edit</PageTitle>
 

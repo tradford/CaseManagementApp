@@ -1,9 +1,12 @@
 ﻿@page "/clients/create"
 @using Microsoft.EntityFrameworkCore
 @using CaseManagementApp.Models
+@using Microsoft.AspNetCore.Authorization
 
 @inject NavigationManager NavigationManager
 @inject IClientRepository ClientRepository
+
+@attribute [Authorize(Roles = "Attorney, Paralegal, Admin")]
 
 <PageTitle>Create</PageTitle>
 

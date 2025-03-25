@@ -1,7 +1,10 @@
 ﻿@page "/casenotes/delete"
 @using CaseManagementApp.Models
+@using Microsoft.AspNetCore.Authorization
 @inject ICaseNoteRepository CaseNoteRepository
 @inject NavigationManager NavigationManager
+
+@attribute [Authorize(Roles = "Attorney, Paralegal, Admin")]
 
 <PageTitle>Delete</PageTitle>
 

@@ -2,7 +2,10 @@
 
 @using CaseManagementApp.Models
 @using Microsoft.AspNetCore.Components.QuickGrid
+@using Microsoft.AspNetCore.Authorization
 @inject ICaseNoteRepository CaseNoteRepository
+
+@attribute [Authorize(Roles = "Attorney, Paralegal, Admin")]
 
 <PageTitle>Case Notes</PageTitle>
 

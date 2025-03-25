@@ -1,8 +1,11 @@
 ﻿@page "/attorneys/delete"
 @using Microsoft.EntityFrameworkCore
 @using CaseManagementApp.Models
+@using Microsoft.AspNetCore.Authorization
 @inject IAttorneyRepository AttorneyRepository
 @inject NavigationManager NavigationManager
+
+@attribute [Authorize(Roles = "Attorney, Paralegal, Admin")]
 
 <PageTitle>Delete</PageTitle>
 
