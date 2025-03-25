@@ -33,40 +33,48 @@ else
 
                 <!-- Case Type -->
                 <div class="mb-3">
-                    <label for="casetype" class="form-label">Case Type:</label>
-                    <select id="casetype" class="form-select" @bind="BrownsteinCase.CaseType">
-                        @foreach (var type in Enum.GetValues(typeof(CaseType)))
+                    <label class="form-label">Case Type:</label>
+                    <InputRadioGroup @bind-Value="BrownsteinCase.CaseType" class="form-check">
+                        @foreach (CaseType type in Enum.GetValues(typeof(CaseType)))
                         {
-                            <option value="@((int)type)">@type</option>
+                            <div class="form-check">
+                                <InputRadio class="form-check-input" Value="@type" />
+                                <label class="form-check-label">@type</label>
+                            </div>
                         }
-                    </select>
+                    </InputRadioGroup>
                     <ValidationMessage For="() => BrownsteinCase.CaseType" />
                 </div>
 
                 <!-- Status -->
                 <div class="mb-3">
-                    <label for="status" class="form-label">Status:</label>
-                    <select id="status" class="form-select" @bind="BrownsteinCase.Status">
-                        @foreach (var status in Enum.GetValues(typeof(CaseStatus)))
+                    <label class="form-label">Status:</label>
+                    <InputRadioGroup @bind-Value="BrownsteinCase.Status" class="form-check">
+                        @foreach (CaseStatus status in Enum.GetValues(typeof(CaseStatus)))
                         {
-                            <option value="@((int)status)">@status</option>
+                            <div class="form-check">
+                                <InputRadio class="form-check-input" Value="@status" />
+                                <label class="form-check-label">@status</label>
+                            </div>
                         }
-                    </select>
+                    </InputRadioGroup>
                     <ValidationMessage For="() => BrownsteinCase.Status" />
                 </div>
 
                 <!-- Client -->
                 <div class="mb-3">
                     <label class="form-label">Select Client:</label>
+
                     <InputRadioGroup @bind-Value="BrownsteinCase.ClientId" class="form-check">
                         @foreach (var client in AllClients)
                         {
                             <div class="form-check">
-                                <InputRadio Value="@client.Id" class="form-check-input" />
+                                <InputRadio class="form-check-input" Value="@client.Id" />
                                 <label class="form-check-label">@client.FullName</label>
                             </div>
                         }
                     </InputRadioGroup>
+
                     <ValidationMessage For="() => BrownsteinCase.ClientId" />
                 </div>
 
@@ -100,19 +108,34 @@ else
     private int Id { get; set; }
 
     [SupplyParameterFromForm]
-    private BrownsteinCase? BrownsteinCase { get; set; }
+    private BrownsteinCase BrownsteinCase { get; set; } = new();  // used for postback binding only
 
+    private BrownsteinCase? DisplayModel; // used only for pre-loading to pre-populate form
     private List<Attorney> AllAttorneys = new();
     private List<Client> AllClients = new();
 
     protected override async Task OnInitializedAsync()
     {
-        BrownsteinCase = await CaseRepository.GetByIdAsync(Id);
+        DisplayModel = await CaseRepository.GetByIdAsync(Id);
 
-        if (BrownsteinCase is null)
+        if (DisplayModel is null)
         {
             NavigationManager.NavigateTo("notfound");
             return;
+        }
+
+        // Prepopulate the form model only if it's not already filled (i.e., on GET not POST)
+        if (BrownsteinCase.Id == 0)
+        {
+            BrownsteinCase = new BrownsteinCase
+                {
+                    Id = DisplayModel.Id,
+                    CaseNumber = DisplayModel.CaseNumber,
+                    CaseType = DisplayModel.CaseType,
+                    Status = DisplayModel.Status,
+                    ClientId = DisplayModel.ClientId,
+                    AttorneyId = DisplayModel.AttorneyId
+                };
         }
 
         AllAttorneys = await AttorneyRepository.GetAllAsync();
@@ -121,10 +144,11 @@ else
 
     private async Task UpdateBrownsteinCase()
     {
-        if (BrownsteinCase is not null)
-        {
-            await CaseRepository.UpdateAsync(BrownsteinCase);
-            NavigationManager.NavigateTo("/brownsteincases");
-        }
+        Console.WriteLine("Form Submit:");
+        Console.WriteLine($"ClientId: {BrownsteinCase.ClientId}, AttorneyId: {BrownsteinCase.AttorneyId}, CaseType: {BrownsteinCase.CaseType}, Status: {BrownsteinCase.Status}");
+
+        await CaseRepository.UpdateAsync(BrownsteinCase);
+        NavigationManager.NavigateTo("/brownsteincases");
     }
 }
+
