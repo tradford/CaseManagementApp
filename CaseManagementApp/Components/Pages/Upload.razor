@@ -24,7 +24,7 @@
     private int maxAllowedFiles = 3;
     private List<string> errors = new();
 
-    private bool Uploaded = false; // ✅ Add this to track successful upload
+    private bool Uploaded = false; // Add this to track successful upload
 
     private async Task LoadFiles(InputFileChangeEventArgs e)
     {
@@ -62,7 +62,7 @@
             }
         }
 
-        // ✅ Set true if no errors
+        // Set true if no errors
         if (errors.Count == 0)
         {
             Uploaded = true;

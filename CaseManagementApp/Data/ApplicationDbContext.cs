@@ -42,13 +42,13 @@ namespace CaseManagementApp.Data
                 .HasOne(cn => cn.BrownsteinCase)
                 .WithMany(bc => bc.CaseNotes)
                 .HasForeignKey(cn => cn.BrownsteinCaseId)
-                .OnDelete(DeleteBehavior.Cascade); // ✅ Keep cascade from Case → Notes
+                .OnDelete(DeleteBehavior.Cascade); //  Keep cascade from Case to Notes
 
             modelBuilder.Entity<CaseNote>()
                 .HasOne(cn => cn.Attorney)
                 .WithMany()
                 .HasForeignKey(cn => cn.AttorneyId)
-                .OnDelete(DeleteBehavior.Restrict); // 🚫 Prevent cascade from Attorney → Notes
+                .OnDelete(DeleteBehavior.Restrict); //  Prevent cascade from Attorney to Notes
         }
     }
 }

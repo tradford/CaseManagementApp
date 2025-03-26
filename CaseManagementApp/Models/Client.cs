@@ -17,7 +17,7 @@ namespace CaseManagementApp.Models
         [RegularExpression(@"^\d{10}$", ErrorMessage = "Phone number must be exactly 10 digits.")]
         public string PhoneNumber { get; set; }
 
-        // ✅ One-to-many relationship
+        // One-to-many relationship
         public ICollection<BrownsteinCase> BrownsteinCases { get; set; } = new List<BrownsteinCase>();
     }
 }
